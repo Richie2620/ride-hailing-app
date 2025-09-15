@@ -58,8 +58,7 @@
     historyContainer.style.padding = "14px";
     historyContainer.style.borderRadius = "10px";
     historyContainer.style.boxShadow = "0 6px 18px rgba(0,0,0,0.06)";
-    document.body.appendChild(historyContainer);
-
+    document.body.insertBefore(historyContainer, document.getElementById("bookButton"));
     historyContainer.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <h3 style="margin:0">Your ride history</h3>
