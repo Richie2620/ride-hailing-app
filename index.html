@@ -7,7 +7,7 @@
   <body>
     <h1>Welcome to Ride Hailing App 🚖</h1>
     <p>This is our first test page.</p>
-    <button>Book a Ride</button>
+    <button id="bookButton">Book a Ride</button>
 
     <div id="bookingForm" style="display:none; margin-top:20px;">
       <h2>Book Your Ride</h2>
@@ -26,7 +26,7 @@
     </div>
 
     <script>
-      const button = document.querySelector("button");
+      const button = document.getElementById("bookButton");
       const form = document.getElementById("bookingForm");
 
       button.addEventListener("click", () => {
