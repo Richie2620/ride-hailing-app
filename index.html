@@ -25,20 +25,28 @@
       </form>
     </div>
 
-       <script>
-      const button = document.getElementById("bookButton");
-      const form = document.getElementById("bookingForm");
+      <script>
+  const button = document.getElementById("bookButton");
+  const form = document.getElementById("bookingForm");
 
-      button.addEventListener("click", () => {
-        form.style.display = "block";
-      });
+  // Create a confirmation area
+  const confirmation = document.createElement("p");
+  confirmation.id = "confirmationMessage";
+  confirmation.style.color = "green";
+  confirmation.style.fontWeight = "bold";
+  document.body.appendChild(confirmation);
 
-      const rideForm = form.querySelector("form");
-      rideForm.addEventListener("submit", (event) => {
-        event.preventDefault(); // stops page reload
-        form.style.display = "none"; // hide form
-        alert("✅ Ride confirmed! Your driver is on the way 🚗");
-      });
-    </script>
+  button.addEventListener("click", () => {
+    form.style.display = "block";
+    confirmation.textContent = ""; // clear old message
+  });
+
+  const rideForm = form.querySelector("form");
+  rideForm.addEventListener("submit", (event) => {
+    event.preventDefault(); // stops page reload
+    form.style.display = "none"; // hide form
+    confirmation.textContent = "✅ Ride confirmed! Your driver is on the way 🚗";
+  });
+</script>
   </body>
 </html>
