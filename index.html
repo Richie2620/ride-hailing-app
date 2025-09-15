@@ -31,20 +31,49 @@
     <button type="submit">Confirm Ride</button>
   </form>
 </div>
-   <script>
+  <script>
   const button = document.getElementById("bookButton");
   const form = document.getElementById("bookingForm");
 
   // Create a confirmation area
-  const confirmation = document.createElement("p");
+  const confirmation = document.createElement("div");
   confirmation.id = "confirmationMessage";
   confirmation.style.color = "green";
   confirmation.style.fontWeight = "bold";
+  confirmation.style.marginTop = "20px";
   document.body.appendChild(confirmation);
+
+  // Sample drivers
+  const drivers = [
+    {
+      name: "Ama",
+      car: "Toyota Corolla",
+      plate: "GR-1234-25",
+      image: "https://i.imgur.com/4n6pU6K.png"
+    },
+    {
+      name: "Kwame",
+      car: "Hyundai Accent",
+      plate: "AS-5678-24",
+      image: "https://i.imgur.com/qz3xZ1x.png"
+    },
+    {
+      name: "Akosua",
+      car: "Kia Rio",
+      plate: "BA-9012-23",
+      image: "https://i.imgur.com/5y3X9m1.png"
+    },
+    {
+      name: "Kojo",
+      car: "Honda Civic",
+      plate: "GE-3456-22",
+      image: "https://i.imgur.com/hZ9mR2L.png"
+    }
+  ];
 
   button.addEventListener("click", () => {
     form.style.display = "block";
-    confirmation.textContent = ""; // clear old message
+    confirmation.innerHTML = ""; // clear old message
   });
 
   const rideForm = form.querySelector("form");
@@ -60,13 +89,21 @@
     // Generate random driver arrival time (2–10 minutes)
     const arrivalTime = Math.floor(Math.random() * 9) + 2;
 
+    // Pick a random driver
+    const driver = drivers[Math.floor(Math.random() * drivers.length)];
+
     // Hide form
     form.style.display = "none";
 
-    // Show confirmation message with ride details + arrival time
-    confirmation.textContent =
-      `✅ Hi ${name}, your ${rideType} ride from ${pickup} to ${dropoff} is confirmed! 🚗 ` +
-      `Your driver will arrive in about ${arrivalTime} minutes.`;
+    // Show confirmation with ride + driver details
+    confirmation.innerHTML = `
+      ✅ Hi ${name}, your ${rideType} ride from <b>${pickup}</b> to <b>${dropoff}</b> is confirmed! 🚗<br>
+      Your driver will arrive in about ${arrivalTime} minutes.<br><br>
+      <b>Driver:</b> ${driver.name}<br>
+      <b>Car:</b> ${driver.car}<br>
+      <b>License Plate:</b> ${driver.plate}<br><br>
+      <img src="${driver.image}" alt="Car Image" style="width:250px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+    `;
   });
 </script>
   </body>
