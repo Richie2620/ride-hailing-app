@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ride Hailing App</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
 <style>
   body {
     margin: 0;
@@ -15,7 +19,6 @@
     flex-direction: column;
   }
 
-  /* Common inputs and buttons */
   input, select {
     width: 100%;
     padding: 12px;
@@ -39,7 +42,7 @@
   button.confirm { background: #2ecc71; color: white; }
   button.historyBtn { background: #2ecc71; position: absolute; top: 16px; right:16px; border-radius:20px; padding:10px 14px; }
 
-  /* Login / Signup Screen */
+  /* Login / Signup */
   #loginScreen, #signupScreen {
     display: flex;
     flex-direction: column;
@@ -58,7 +61,7 @@
   }
 
   /* Map */
-  #map { flex: 1; background: url("https://i.imgur.com/dyKX5Ql.png") center/cover no-repeat; position: relative; }
+  #map { flex: 1; }
 
   /* Booking card */
   #bookingCard {
@@ -68,7 +71,6 @@
     box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
   }
 
-  /* Confirmation message */
   #confirmationMessage { margin-top: 12px; color: #2ecc71; font-weight: bold; }
 
   /* History drawer */
@@ -100,8 +102,8 @@
 <!-- Login Screen -->
 <div id="loginScreen" class="card">
   <h2>Login</h2>
-  <input type="text" id="loginEmail" placeholder="Email or Phone" required>
-  <input type="password" id="loginPassword" placeholder="Password" required>
+  <input type="text" id="loginEmail" placeholder="Email or Phone">
+  <input type="password" id="loginPassword" placeholder="Password">
   <button id="loginBtn" class="confirm">Login</button>
   <p style="margin-top:12px; text-align:center;">No account? <span id="goSignup" style="color:#2ecc71; cursor:pointer;">Sign up</span></p>
   <p id="loginError" style="color:#e74c3c;"></p>
@@ -110,18 +112,16 @@
 <!-- Signup Screen -->
 <div id="signupScreen" class="card" style="display:none;">
   <h2>Sign Up</h2>
-  <input type="text" id="signupEmail" placeholder="Email or Phone" required>
-  <input type="password" id="signupPassword" placeholder="Password" required>
-  <input type="text" id="signupName" placeholder="Your Name" required>
+  <input type="text" id="signupEmail" placeholder="Email or Phone">
+  <input type="password" id="signupPassword" placeholder="Password">
+  <input type="text" id="signupName" placeholder="Your Name">
   <button id="signupBtn" class="confirm">Sign Up</button>
   <p style="margin-top:12px; text-align:center;">Already have an account? <span id="goLogin" style="color:#2ecc71; cursor:pointer;">Login</span></p>
   <p id="signupError" style="color:#e74c3c;"></p>
 </div>
 
-<!-- Map Screen -->
-<div id="map" style="display:none;">
-  <button id="historyBtn" class="historyBtn">History</button>
-</div>
+<!-- Map -->
+<div id="map" style="display:none;"></div>
 
 <!-- Bottom booking card -->
 <div id="bookingCard" style="display:none;">
@@ -146,6 +146,8 @@
   <div id="rideHistoryList"></div>
 </div>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
   // ===== Account Management =====
   const loginScreen = document.getElementById("loginScreen");
@@ -155,7 +157,6 @@
 
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
-
   const goSignup = document.getElementById("goSignup");
   const goLogin = document.getElementById("goLogin");
 
@@ -168,36 +169,33 @@
   const signupName = document.getElementById("signupName");
   const signupError = document.getElementById("signupError");
 
-  // switch screens
   goSignup.onclick = () => { loginScreen.style.display="none"; signupScreen.style.display="flex"; };
   goLogin.onclick = () => { signupScreen.style.display="none"; loginScreen.style.display="flex"; };
 
-  // signup
-  signupBtn.onclick = () => {
+  signupBtn.addEventListener("click", e => {
+    e.preventDefault();
     const email = signupEmail.value.trim();
     const password = signupPassword.value;
     const name = signupName.value.trim();
-    if(!email||!password||!name){ signupError.textContent="All fields required"; return; }
-
+    if(!email || !password || !name){ signupError.textContent="All fields required"; return; }
     let users = JSON.parse(localStorage.getItem("users")||"{}");
     if(users[email]){ signupError.textContent="User already exists"; return; }
     users[email] = { password, name };
     localStorage.setItem("users", JSON.stringify(users));
     localStorage.setItem("currentUser", email);
-    loadMapUI(users[email].name);
-  };
+    loadMapUI(name);
+  });
 
-  // login
-  loginBtn.onclick = () => {
+  loginBtn.addEventListener("click", e => {
+    e.preventDefault();
     const email = loginEmail.value.trim();
     const password = loginPassword.value;
     let users = JSON.parse(localStorage.getItem("users")||"{}");
     if(!users[email] || users[email].password!==password){ loginError.textContent="Invalid login"; return; }
     localStorage.setItem("currentUser", email);
     loadMapUI(users[email].name);
-  };
+  });
 
-  // check if user already logged in
   const currentUserEmail = localStorage.getItem("currentUser");
   if(currentUserEmail){
     const users = JSON.parse(localStorage.getItem("users")||"{}");
@@ -210,6 +208,15 @@
     mapScreen.style.display="block";
     bookingCard.style.display="block";
     document.getElementById("name").value = name;
+
+    // Initialize map
+    if(!window.map){
+      window.map = L.map('map').setView([5.6037, -0.1870], 13); // Accra coordinates
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(window.map);
+    }
+
     loadHistory();
   }
 
@@ -224,10 +231,51 @@
   const currentUser = localStorage.getItem("currentUser");
   if(!rideHistory[currentUser]) rideHistory[currentUser]=[];
 
-  function renderHistory(){
+  function loadHistory(){
     rideHistoryList.innerHTML="";
     const arr = rideHistory[currentUser];
     arr.forEach(ride=>{
-      const el=document.createElement("div");
+      const el = document.createElement("div");
       el.className="history-card";
-      el.innerHTML=`<
+      el.innerHTML=`<strong>${ride.rideType}</strong><br>${ride.pickup} → ${ride.dropoff}<br>
+      <small>${ride.driver} • ${ride.car} • ${ride.plate} • ${ride.arrivalTime} mins</small>`;
+      rideHistoryList.appendChild(el);
+    });
+  }
+
+  historyBtn.addEventListener("click", ()=>{
+    if(historyDrawer.style.transform==="translateY(0%)"){
+      historyDrawer.style.transform="translateY(100%)";
+    } else {
+      historyDrawer.style.transform="translateY(0%)";
+      loadHistory();
+    }
+  });
+
+  rideForm.addEventListener("submit", (event)=>{
+    event.preventDefault();
+    const name = document.getElementById("name").value;
+    const pickup = document.getElementById("pickup").value;
+    const dropoff = document.getElementById("dropoff").value;
+    const rideType = document.getElementById("rideType").value;
+
+    const drivers = ["Kwame","Ama","Yaw","Akosua","Kojo"];
+    const cars = ["Toyota Corolla","Hyundai Accent","Kia Rio","Nissan Versa","Honda Civic"];
+    const plates = ["GX-1234-24","AS-5678-23","GR-9101-22","BA-3456-21","ER-7890-20"];
+
+    const driver = drivers[Math.floor(Math.random()*drivers.length)];
+    const car = cars[Math.floor(Math.random()*cars.length)];
+    const plate = plates[Math.floor(Math.random()*plates.length)];
+    const arrivalTime = Math.floor(Math.random()*9)+2;
+
+    const ride = {name,pickup,dropoff,rideType,driver,car,plate,arrivalTime};
+    rideHistory[currentUser].push(ride);
+    localStorage.setItem("rideHistory", JSON.stringify(rideHistory));
+    confirmation.textContent=`✅ Hi ${name}, your ${rideType} ride is confirmed! ${driver} is arriving in ${arrivalTime} mins driving a ${car} (${plate}).`;
+    rideForm.reset();
+    document.getElementById("name").value = name; // refill name
+    loadHistory();
+  });
+</script>
+</body>
+</html>
