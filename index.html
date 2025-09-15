@@ -9,22 +9,28 @@
     <p>This is our first test page.</p>
     <button id="bookButton">Book a Ride</button>
 
-    <div id="bookingForm" style="display:none; margin-top:20px;">
-      <h2>Book Your Ride</h2>
-      <form>
-        <label for="name">Your Name:</label><br>
-        <input type="text" id="name" name="name"><br><br>
+   <div id="bookingForm" style="display:none; margin-top:20px;">
+  <h2>Book Your Ride</h2>
+  <form>
+    <label for="name">Your Name:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
 
-        <label for="pickup">Pickup Location:</label><br>
-        <input type="text" id="pickup" name="pickup"><br><br>
+    <label for="pickup">Pickup Location:</label><br>
+    <input type="text" id="pickup" name="pickup" required><br><br>
 
-        <label for="dropoff">Drop-off Location:</label><br>
-        <input type="text" id="dropoff" name="dropoff"><br><br>
+    <label for="dropoff">Drop-off Location:</label><br>
+    <input type="text" id="dropoff" name="dropoff" required><br><br>
 
-        <button type="submit">Confirm Ride</button>
-      </form>
-    </div>
+    <label for="rideType">Select Ride Type:</label><br>
+    <select id="rideType" name="rideType" required>
+      <option value="standard">Standard</option>
+      <option value="taxi">Taxi</option>
+      <option value="premium">Premium</option>
+    </select><br><br>
 
+    <button type="submit">Confirm Ride</button>
+  </form>
+</div>
       <script>
   const button = document.getElementById("bookButton");
   const form = document.getElementById("bookingForm");
