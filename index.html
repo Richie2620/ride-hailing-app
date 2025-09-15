@@ -25,12 +25,19 @@
       </form>
     </div>
 
-    <script>
+       <script>
       const button = document.getElementById("bookButton");
       const form = document.getElementById("bookingForm");
 
       button.addEventListener("click", () => {
         form.style.display = "block";
+      });
+
+      const rideForm = form.querySelector("form");
+      rideForm.addEventListener("submit", (event) => {
+        event.preventDefault(); // stops page reload
+        form.style.display = "none"; // hide form
+        alert("✅ Ride confirmed! Your driver is on the way 🚗");
       });
     </script>
   </body>
