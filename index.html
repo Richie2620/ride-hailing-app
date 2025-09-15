@@ -31,80 +31,249 @@
     <button type="submit">Confirm Ride</button>
   </form>
 </div>
-  <script>
+ <script>
+(function() {
   const button = document.getElementById("bookButton");
   const form = document.getElementById("bookingForm");
 
-  // Create a confirmation area
-  const confirmation = document.createElement("div");
-  confirmation.id = "confirmationMessage";
-  confirmation.style.color = "green";
-  confirmation.style.fontWeight = "bold";
-  confirmation.style.marginTop = "20px";
-  document.body.appendChild(confirmation);
+  // ensure confirmation area exists (or create it)
+  let confirmation = document.getElementById("confirmationMessage");
+  if (!confirmation) {
+    confirmation = document.createElement("div");
+    confirmation.id = "confirmationMessage";
+    confirmation.style.color = "green";
+    confirmation.style.fontWeight = "bold";
+    confirmation.style.marginTop = "20px";
+    document.body.appendChild(confirmation);
+  }
 
-  // Sample drivers
+  // create a ride history container (if not present)
+  let historyContainer = document.getElementById("rideHistoryContainer");
+  if (!historyContainer) {
+    historyContainer = document.createElement("div");
+    historyContainer.id = "rideHistoryContainer";
+    historyContainer.style.maxWidth = "900px";
+    historyContainer.style.margin = "20px auto";
+    historyContainer.style.background = "#ffffff";
+    historyContainer.style.padding = "14px";
+    historyContainer.style.borderRadius = "10px";
+    historyContainer.style.boxShadow = "0 6px 18px rgba(0,0,0,0.06)";
+    document.body.appendChild(historyContainer);
+
+    historyContainer.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h3 style="margin:0">Your ride history</h3>
+        <small id="historyCount" style="color:#666"></small>
+      </div>
+      <div id="rideHistoryList" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;"></div>
+      <div style="text-align:right; margin-top:12px;">
+        <button id="clearHistoryBtn" style="padding:8px 12px; border-radius:6px; border:none; background:#e74c3c; color:#fff; cursor:pointer">Clear history</button>
+      </div>
+    `;
+  }
+
+  const historyList = document.getElementById("rideHistoryList");
+  const clearBtn = document.getElementById("clearHistoryBtn");
+  const historyCount = document.getElementById("historyCount");
+
+  // Sample drivers (same list as before)
   const drivers = [
-    {
-      name: "Ama",
-      car: "Toyota Corolla",
-      plate: "GR-1234-25",
-      image: "https://i.imgur.com/4n6pU6K.png"
-    },
-    {
-      name: "Kwame",
-      car: "Hyundai Accent",
-      plate: "AS-5678-24",
-      image: "https://i.imgur.com/qz3xZ1x.png"
-    },
-    {
-      name: "Akosua",
-      car: "Kia Rio",
-      plate: "BA-9012-23",
-      image: "https://i.imgur.com/5y3X9m1.png"
-    },
-    {
-      name: "Kojo",
-      car: "Honda Civic",
-      plate: "GE-3456-22",
-      image: "https://i.imgur.com/hZ9mR2L.png"
-    }
+    { name: "Ama", car: "Toyota Corolla", plate: "GR-1234-25", image: "https://i.imgur.com/4n6pU6K.png" },
+    { name: "Kwame", car: "Hyundai Accent", plate: "AS-5678-24", image: "https://i.imgur.com/qz3xZ1x.png" },
+    { name: "Akosua", car: "Kia Rio", plate: "BA-9012-23", image: "https://i.imgur.com/5y3X9m1.png" },
+    { name: "Kojo", car: "Honda Civic", plate: "GE-3456-22", image: "https://i.imgur.com/hZ9mR2L.png" }
   ];
+
+  function loadHistory() {
+    const raw = localStorage.getItem("rideHistory");
+    const arr = raw ? JSON.parse(raw) : [];
+    renderHistory(arr);
+  }
+
+  function saveRide(ride) {
+    const raw = localStorage.getItem("rideHistory");
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.unshift(ride); // newest first
+    localStorage.setItem("rideHistory", JSON.stringify(arr));
+    renderHistory(arr);
+  }
+
+  function renderHistory(arr) {
+    historyList.innerHTML = "";
+    if (!arr || arr.length === 0) {
+      historyList.innerHTML = '<p style="color:#666; margin:8px 0">No rides yet. Book one and it will appear here.</p>';
+      historyCount.textContent = "";
+      return;
+    }
+
+    historyCount.textContent = `${arr.length} ride${arr.length > 1 ? 's' : ''}`;
+
+    arr.forEach(ride => {
+      const el = document.createElement("div");
+      el.style.display = "flex";
+      el.style.alignItems = "center";
+      el.style.gap = "12px";
+      el.style.padding = "10px";
+      el.style.border = "1px solid #f0f0f0";
+      el.style.borderRadius = "8px";
+      el.style.background = "#fbfbfb";
+
+      const img = document.createElement("img");
+      img.src = ride.driver.image;
+      img.alt = "car";
+      img.style.width = "90px";
+      img.style.height = "60px";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "6px";
+      img.style.boxShadow = "0 4px 8px rgba(0,0,0,0.08)";
+
+      const middle = document.createElement("div");
+      middle.style.flex = "1";
+      middle.innerHTML = `
+        <div style="font-weight:600">${capitalize(ride.rideType)} • ${escapeHtml(ride.pickup)} → ${escapeHtml(ride.dropoff)}</div>
+        <div style="color:#555; font-size:13px; margin-top:6px">
+          Driver: <b>${escapeHtml(ride.driver.name)}</b> • ${escapeHtml(ride.driver.car)} • Plate: ${escapeHtml(ride.driver.plate)} • ⭐ ${ride.driver.rating}/5
+        </div>
+        <div style="color:#777; font-size:12px; margin-top:6px">
+          ${new Date(ride.timestamp).toLocaleString()} • ETA ${ride.arrivalTime} min
+        </div>
+      `;
+
+      const rightCol = document.createElement("div");
+      rightCol.style.display = "flex";
+      rightCol.style.flexDirection = "column";
+      rightCol.style.gap = "8px";
+      rightCol.style.alignItems = "flex-end";
+
+      // view map button
+      const viewMapBtn = document.createElement("button");
+      viewMapBtn.textContent = "View map";
+      viewMapBtn.style.padding = "8px 10px";
+      viewMapBtn.style.borderRadius = "6px";
+      viewMapBtn.style.border = "none";
+      viewMapBtn.style.background = "#3498db";
+      viewMapBtn.style.color = "#fff";
+      viewMapBtn.style.cursor = "pointer";
+      viewMapBtn.addEventListener("click", () => {
+        const center = encodeURIComponent(ride.pickup);
+        const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${center}&zoom=14&size=400x300&markers=${center},red`;
+        window.open(url, "_blank");
+      });
+
+      // rebook button (optional)
+      const rebookBtn = document.createElement("button");
+      rebookBtn.textContent = "Rebook";
+      rebookBtn.style.padding = "6px 10px";
+      rebookBtn.style.borderRadius = "6px";
+      rebookBtn.style.border = "1px solid #ddd";
+      rebookBtn.style.background = "#fff";
+      rebookBtn.style.cursor = "pointer";
+      rebookBtn.addEventListener("click", () => {
+        // prefill form and show it
+        document.getElementById("name").value = ride.name;
+        document.getElementById("pickup").value = ride.pickup;
+        document.getElementById("dropoff").value = ride.dropoff;
+        document.getElementById("rideType").value = ride.rideType;
+        form.style.display = "block";
+        window.scrollTo({ top: form.offsetTop - 80, behavior: "smooth" });
+      });
+
+      rightCol.appendChild(viewMapBtn);
+      rightCol.appendChild(rebookBtn);
+
+      el.appendChild(img);
+      el.appendChild(middle);
+      el.appendChild(rightCol);
+
+      historyList.appendChild(el);
+    });
+  }
+
+  clearBtn.addEventListener("click", () => {
+    if (confirm("Clear all ride history?")) {
+      localStorage.removeItem("rideHistory");
+      loadHistory();
+    }
+  });
 
   button.addEventListener("click", () => {
     form.style.display = "block";
     confirmation.innerHTML = ""; // clear old message
+    window.scrollTo({ top: form.offsetTop - 80, behavior: "smooth" });
   });
 
   const rideForm = form.querySelector("form");
   rideForm.addEventListener("submit", (event) => {
-    event.preventDefault(); // stops page reload
+    event.preventDefault();
 
-    // Get user inputs
-    const name = document.getElementById("name").value;
-    const pickup = document.getElementById("pickup").value;
-    const dropoff = document.getElementById("dropoff").value;
+    // gather inputs
+    const name = document.getElementById("name").value.trim();
+    const pickup = document.getElementById("pickup").value.trim();
+    const dropoff = document.getElementById("dropoff").value.trim();
     const rideType = document.getElementById("rideType").value;
 
-    // Generate random driver arrival time (2–10 minutes)
-    const arrivalTime = Math.floor(Math.random() * 9) + 2;
+    if (!name || !pickup || !dropoff) {
+      alert("Please fill in name, pickup and drop-off.");
+      return;
+    }
 
-    // Pick a random driver
-    const driver = drivers[Math.floor(Math.random() * drivers.length)];
+    const arrivalTime = Math.floor(Math.random() * 9) + 2; // 2-10
+    const chosenDriver = drivers[Math.floor(Math.random() * drivers.length)];
+    const rating = (Math.random() * (5 - 4) + 4).toFixed(1);
+    const timestamp = new Date().toISOString();
 
-    // Hide form
+    const ride = {
+      name,
+      pickup,
+      dropoff,
+      rideType,
+      arrivalTime,
+      driver: { ...chosenDriver, rating },
+      timestamp
+    };
+
+    // hide form and show confirmation
     form.style.display = "none";
 
-    // Show confirmation with ride + driver details
+    const pickupEncoded = encodeURIComponent(pickup);
+
     confirmation.innerHTML = `
-      ✅ Hi ${name}, your ${rideType} ride from <b>${pickup}</b> to <b>${dropoff}</b> is confirmed! 🚗<br>
-      Your driver will arrive in about ${arrivalTime} minutes.<br><br>
-      <b>Driver:</b> ${driver.name}<br>
-      <b>Car:</b> ${driver.car}<br>
-      <b>License Plate:</b> ${driver.plate}<br><br>
-      <img src="${driver.image}" alt="Car Image" style="width:250px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+      <div style="background:#f3fff3; padding:12px; border-radius:8px; box-shadow:0 6px 14px rgba(0,0,0,0.04)">
+        ✅ Hi ${escapeHtml(name)}, your <b>${capitalize(rideType)}</b> ride from <b>${escapeHtml(pickup)}</b> to <b>${escapeHtml(dropoff)}</b> is confirmed! 🚗
+        <div style="margin-top:8px">Your driver will arrive in about <b>${arrivalTime}</b> minutes.</div>
+        <div style="margin-top:10px; color:#333">
+          <b>Driver:</b> ${escapeHtml(chosenDriver.name)} • <b>Rating:</b> ⭐ ${rating}/5<br>
+          <b>Car:</b> ${escapeHtml(chosenDriver.car)} • <b>Plate:</b> ${escapeHtml(chosenDriver.plate)}
+        </div>
+        <div style="margin-top:10px">
+          <img src="${chosenDriver.image}" alt="car" style="width:260px; border-radius:10px; box-shadow:0 6px 14px rgba(0,0,0,0.08)">
+        </div>
+        <div style="margin-top:12px">
+          <img src="https://staticmap.openstreetmap.de/staticmap.php?center=${pickupEncoded}&zoom=14&size=400x300&markers=${pickupEncoded},red" alt="map" style="width:100%; max-width:400px; border-radius:10px;">
+        </div>
+      </div>
     `;
+
+    // save ride to history and update UI
+    saveRide(ride);
+
+    // scroll to confirmation
+    confirmation.scrollIntoView({ behavior: "smooth", block: "center" });
   });
+
+  // helper functions
+  function capitalize(s) {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // load initial history on page open
+  loadHistory();
+})();
 </script>
   </body>
 </html>
