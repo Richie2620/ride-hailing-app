@@ -31,7 +31,7 @@
     <button type="submit">Confirm Ride</button>
   </form>
 </div>
-      <script>
+     <script>
   const button = document.getElementById("bookButton");
   const form = document.getElementById("bookingForm");
 
@@ -50,8 +50,19 @@
   const rideForm = form.querySelector("form");
   rideForm.addEventListener("submit", (event) => {
     event.preventDefault(); // stops page reload
-    form.style.display = "none"; // hide form
-    confirmation.textContent = "✅ Ride confirmed! Your driver is on the way 🚗";
+
+    // Get user inputs
+    const name = document.getElementById("name").value;
+    const pickup = document.getElementById("pickup").value;
+    const dropoff = document.getElementById("dropoff").value;
+    const rideType = document.getElementById("rideType").value;
+
+    // Hide form
+    form.style.display = "none";
+
+    // Show confirmation message with ride details
+    confirmation.textContent =
+      `✅ Hi ${name}, your ${rideType} ride from ${pickup} to ${dropoff} is confirmed! 🚗`;
   });
 </script>
   </body>
