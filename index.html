@@ -31,7 +31,7 @@
     <button type="submit">Confirm Ride</button>
   </form>
 </div>
-     <script>
+   <script>
   const button = document.getElementById("bookButton");
   const form = document.getElementById("bookingForm");
 
@@ -57,12 +57,16 @@
     const dropoff = document.getElementById("dropoff").value;
     const rideType = document.getElementById("rideType").value;
 
+    // Generate random driver arrival time (2–10 minutes)
+    const arrivalTime = Math.floor(Math.random() * 9) + 2;
+
     // Hide form
     form.style.display = "none";
 
-    // Show confirmation message with ride details
+    // Show confirmation message with ride details + arrival time
     confirmation.textContent =
-      `✅ Hi ${name}, your ${rideType} ride from ${pickup} to ${dropoff} is confirmed! 🚗`;
+      `✅ Hi ${name}, your ${rideType} ride from ${pickup} to ${dropoff} is confirmed! 🚗 ` +
+      `Your driver will arrive in about ${arrivalTime} minutes.`;
   });
 </script>
   </body>
