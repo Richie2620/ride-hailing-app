@@ -1,72 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ride Hailing App</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body style="font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:20px;">
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 16px;
+        background: #f9f9f9;
+      }
 
-    <h1 style="text-align:center;">Welcome to Ride Hailing App 🚖</h1>
-    <p style="text-align:center;">Book a ride easily with random drivers, cars, and instant confirmation.</p>
+      h1, h2, h3 {
+        margin: 0 0 12px;
+        font-weight: 600;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 12px;
+        border: none;
+        border-radius: 8px;
+        background: #3498db;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        background: #aaa;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 15px;
+      }
+
+      #confirmationMessage {
+        margin-top: 16px;
+        color: green;
+        font-weight: bold;
+      }
+
+      #bookingForm {
+        background: white;
+        padding: 16px;
+        margin-top: 16px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .history-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚖 Ride Hailing App</h1>
 
     <!-- Ride History Section -->
-    <div id="rideHistoryContainer"></div>
+    <div id="historyContainer"></div>
 
-    <!-- Book a Ride Button -->
-    <div style="text-align:center; margin:20px 0;">
-      <button id="bookButton" style="padding:12px 18px; font-size:16px; border:none; border-radius:8px; background:#2ecc71; color:#fff; cursor:pointer;">
-        Book a Ride
-      </button>
-    </div>
+    <!-- Booking Button -->
+    <button id="bookButton">Book a Ride</button>
 
     <!-- Booking Form -->
-    <div id="bookingForm" style="display:none; max-width:400px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+    <div id="bookingForm" style="display:none;">
       <h2>Book Your Ride</h2>
       <form>
-        <label for="name">Your Name:</label><br>
-        <input type="text" id="name" name="name" style="width:100%; padding:8px; margin:6px 0;"><br>
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required>
 
-        <label for="pickup">Pickup Location:</label><br>
-        <input type="text" id="pickup" name="pickup" style="width:100%; padding:8px; margin:6px 0;"><br>
+        <label for="pickup">Pickup Location:</label>
+        <input type="text" id="pickup" name="pickup" placeholder="Enter pickup" required>
 
-        <label for="dropoff">Drop-off Location:</label><br>
-        <input type="text" id="dropoff" name="dropoff" style="width:100%; padding:8px; margin:6px 0;"><br>
+        <label for="dropoff">Drop-off Location:</label>
+        <input type="text" id="dropoff" name="dropoff" placeholder="Enter drop-off" required>
 
-        <label for="rideType">Select Ride Type:</label><br>
-        <select id="rideType" name="rideType" style="width:100%; padding:8px; margin:6px 0;">
+        <label for="rideType">Ride Type:</label>
+        <select id="rideType" name="rideType" required>
           <option value="Standard">Standard</option>
           <option value="Taxi">Taxi</option>
           <option value="Premium">Premium</option>
-        </select><br>
+        </select>
 
-        <button type="submit" style="margin-top:12px; padding:10px 16px; border:none; border-radius:8px; background:#3498db; color:#fff; cursor:pointer;">
-          Confirm Ride
-        </button>
+        <button type="submit">Confirm Ride</button>
       </form>
     </div>
 
-    <!-- Confirmation -->
-    <div id="confirmationMessage" style="max-width:600px; margin:20px auto;"></div>
+    <p id="confirmationMessage"></p>
 
-    <!-- Script -->
     <script>
-    (function() {
       const button = document.getElementById("bookButton");
       const form = document.getElementById("bookingForm");
       const confirmation = document.getElementById("confirmationMessage");
 
-      // create history container
-      let historyContainer = document.getElementById("rideHistoryContainer");
-      historyContainer.style.maxWidth = "900px";
-      historyContainer.style.margin = "20px auto";
-      historyContainer.style.background = "#ffffff";
-      historyContainer.style.padding = "14px";
-      historyContainer.style.borderRadius = "10px";
-      historyContainer.style.boxShadow = "0 6px 18px rgba(0,0,0,0.06)";
-      document.body.insertBefore(historyContainer, button.parentNode);
-
+      // Create Ride History container
+      const historyContainer = document.getElementById("historyContainer");
       historyContainer.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
           <h3 style="margin:0">Ride history</h3>
           <button id="toggleHistoryBtn" style="padding:6px 10px; border:none; border-radius:6px; background:#3498db; color:#fff; cursor:pointer;">
             Show
@@ -76,19 +121,23 @@
           <small id="historyCount" style="color:#666"></small>
           <div id="rideHistoryList" style="display:flex; flex-direction:column; gap:12px; margin-top:12px;"></div>
           <div style="text-align:right; margin-top:12px;">
-            <button id="clearHistoryBtn" style="padding:8px 12px; border-radius:6px; border:none; background:#e74c3c; color:#fff; cursor:pointer">
+            <button id="clearHistoryBtn" style="padding:10px; border-radius:6px; border:none; background:#e74c3c; color:#fff; cursor:pointer">
               Clear history
             </button>
           </div>
         </div>
       `;
 
-      const historyList = document.getElementById("rideHistoryList");
-      const clearBtn = document.getElementById("clearHistoryBtn");
-      const historyCount = document.getElementById("historyCount");
+      const rideForm = form.querySelector("form");
       const toggleBtn = document.getElementById("toggleHistoryBtn");
       const historyContent = document.getElementById("rideHistoryContent");
+      const historyList = document.getElementById("rideHistoryList");
+      const historyCount = document.getElementById("historyCount");
+      const clearBtn = document.getElementById("clearHistoryBtn");
 
+      let rideHistory = JSON.parse(localStorage.getItem("rideHistory")) || [];
+
+      // Toggle history
       toggleBtn.addEventListener("click", () => {
         if (historyContent.style.display === "none") {
           historyContent.style.display = "block";
@@ -99,197 +148,67 @@
         }
       });
 
-      const drivers = [
-        { name: "Ama", car: "Toyota Corolla", plate: "GR-1234-25", image: "https://i.imgur.com/4n6pU6K.png" },
-        { name: "Kwame", car: "Hyundai Accent", plate: "AS-5678-24", image: "https://i.imgur.com/qz3xZ1x.png" },
-        { name: "Akosua", car: "Kia Rio", plate: "BA-9012-23", image: "https://i.imgur.com/5y3X9m1.png" },
-        { name: "Kojo", car: "Honda Civic", plate: "GE-3456-22", image: "https://i.imgur.com/hZ9mR2L.png" }
-      ];
-
-      function loadHistory() {
-        const raw = localStorage.getItem("rideHistory");
-        const arr = raw ? JSON.parse(raw) : [];
-        renderHistory(arr);
-      }
-
-      function saveRide(ride) {
-        const raw = localStorage.getItem("rideHistory");
-        const arr = raw ? JSON.parse(raw) : [];
-        arr.unshift(ride);
-        localStorage.setItem("rideHistory", JSON.stringify(arr));
-        renderHistory(arr);
-      }
-
-      function renderHistory(arr) {
+      // Render ride history
+      function renderHistory() {
         historyList.innerHTML = "";
-        if (!arr || arr.length === 0) {
-          historyList.innerHTML = '<p style="color:#666; margin:8px 0">No rides yet. Book one and it will appear here.</p>';
-          historyCount.textContent = "";
-          return;
-        }
-
-        historyCount.textContent = `${arr.length} ride${arr.length > 1 ? 's' : ''}`;
-
-        arr.forEach(ride => {
+        historyCount.textContent = `${rideHistory.length} rides`;
+        rideHistory.forEach((ride, i) => {
           const el = document.createElement("div");
-          el.style.display = "flex";
-          el.style.alignItems = "center";
-          el.style.gap = "14px";
-          el.style.padding = "14px";
-          el.style.border = "1px solid #e0e0e0";
-          el.style.borderRadius = "12px";
-          el.style.background = "#ffffff";
-          el.style.boxShadow = "0 3px 8px rgba(0,0,0,0.06)";
-
-          const img = document.createElement("img");
-          img.src = ride.driver.image;
-          img.alt = "car";
-          img.style.width = "90px";
-          img.style.height = "60px";
-          img.style.objectFit = "cover";
-          img.style.borderRadius = "6px";
-
-          const middle = document.createElement("div");
-          middle.style.flex = "1";
-          middle.innerHTML = `
-            <div style="font-weight:600">${capitalize(ride.rideType)} • ${escapeHtml(ride.pickup)} → ${escapeHtml(ride.dropoff)}</div>
-            <div style="color:#555; font-size:13px; margin-top:6px">
-              Driver: <b>${escapeHtml(ride.driver.name)}</b> • ${escapeHtml(ride.driver.car)} • Plate: ${escapeHtml(ride.driver.plate)} • ⭐ ${ride.driver.rating}/5
-            </div>
-            <div style="color:#777; font-size:12px; margin-top:6px">
-              ${new Date(ride.timestamp).toLocaleString()} • ETA ${ride.arrivalTime} min
+          el.className = "history-card";
+          el.innerHTML = `
+            <div>
+              <strong>${ride.rideType}</strong><br>
+              ${ride.pickup} → ${ride.dropoff}<br>
+              <small>${ride.driver} • ${ride.car} • ${ride.plate}</small>
             </div>
           `;
-
-          const rightCol = document.createElement("div");
-          rightCol.style.display = "flex";
-          rightCol.style.flexDirection = "column";
-          rightCol.style.gap = "8px";
-          rightCol.style.alignItems = "flex-end";
-
-          const viewMapBtn = document.createElement("button");
-          viewMapBtn.textContent = "View map";
-          viewMapBtn.style.padding = "6px 10px";
-          viewMapBtn.style.borderRadius = "6px";
-          viewMapBtn.style.border = "none";
-          viewMapBtn.style.background = "#3498db";
-          viewMapBtn.style.color = "#fff";
-          viewMapBtn.style.cursor = "pointer";
-          viewMapBtn.addEventListener("click", () => {
-            const center = encodeURIComponent(ride.pickup);
-            const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${center}&zoom=14&size=400x300&markers=${center},red`;
-            window.open(url, "_blank");
-          });
-
-          const rebookBtn = document.createElement("button");
-          rebookBtn.textContent = "Rebook";
-          rebookBtn.style.padding = "6px 10px";
-          rebookBtn.style.borderRadius = "6px";
-          rebookBtn.style.border = "1px solid #ddd";
-          rebookBtn.style.background = "#fff";
-          rebookBtn.style.cursor = "pointer";
-          rebookBtn.addEventListener("click", () => {
-            document.getElementById("name").value = ride.name;
-            document.getElementById("pickup").value = ride.pickup;
-            document.getElementById("dropoff").value = ride.dropoff;
-            document.getElementById("rideType").value = ride.rideType;
-            form.style.display = "block";
-            window.scrollTo({ top: form.offsetTop - 80, behavior: "smooth" });
-          });
-
-          rightCol.appendChild(viewMapBtn);
-          rightCol.appendChild(rebookBtn);
-
-          el.appendChild(img);
-          el.appendChild(middle);
-          el.appendChild(rightCol);
-
           historyList.appendChild(el);
         });
       }
 
+      renderHistory();
+
       clearBtn.addEventListener("click", () => {
-        if (confirm("Clear all ride history?")) {
-          localStorage.removeItem("rideHistory");
-          loadHistory();
-        }
+        rideHistory = [];
+        localStorage.setItem("rideHistory", JSON.stringify(rideHistory));
+        renderHistory();
       });
 
+      // Book button
       button.addEventListener("click", () => {
         form.style.display = "block";
-        confirmation.innerHTML = "";
-        window.scrollTo({ top: form.offsetTop - 80, behavior: "smooth" });
+        confirmation.textContent = "";
       });
 
-      const rideForm = form.querySelector("form");
+      // Handle booking form
       rideForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const name = document.getElementById("name").value.trim();
-        const pickup = document.getElementById("pickup").value.trim();
-        const dropoff = document.getElementById("dropoff").value.trim();
+        const name = document.getElementById("name").value;
+        const pickup = document.getElementById("pickup").value;
+        const dropoff = document.getElementById("dropoff").value;
         const rideType = document.getElementById("rideType").value;
 
-        if (!name || !pickup || !dropoff) {
-          alert("Please fill in name, pickup and drop-off.");
-          return;
-        }
+        const drivers = ["Kwame", "Ama", "Yaw", "Akosua", "Kojo"];
+        const cars = ["Toyota Corolla", "Hyundai Accent", "Kia Rio", "Nissan Versa", "Honda Civic"];
+        const plates = ["GX-1234-24", "AS-5678-23", "GR-9101-22", "BA-3456-21", "ER-7890-20"];
 
+        const driver = drivers[Math.floor(Math.random() * drivers.length)];
+        const car = cars[Math.floor(Math.random() * cars.length)];
+        const plate = plates[Math.floor(Math.random() * plates.length)];
         const arrivalTime = Math.floor(Math.random() * 9) + 2;
-        const chosenDriver = drivers[Math.floor(Math.random() * drivers.length)];
-        const rating = (Math.random() * (5 - 4) + 4).toFixed(1);
-        const timestamp = new Date().toISOString();
-
-        const ride = {
-          name,
-          pickup,
-          dropoff,
-          rideType,
-          arrivalTime,
-          driver: { ...chosenDriver, rating },
-          timestamp
-        };
 
         form.style.display = "none";
 
-        const pickupEncoded = encodeURIComponent(pickup);
+        const ride = { name, pickup, dropoff, rideType, driver, car, plate, arrivalTime };
+        rideHistory.push(ride);
+        localStorage.setItem("rideHistory", JSON.stringify(rideHistory));
+        renderHistory();
 
-        confirmation.innerHTML = `
-          <div style="background:#f3fff3; padding:12px; border-radius:8px; box-shadow:0 6px 14px rgba(0,0,0,0.04)">
-            ✅ Hi ${escapeHtml(name)}, your <b>${capitalize(rideType)}</b> ride from <b>${escapeHtml(pickup)}</b> to <b>${escapeHtml(dropoff)}</b> is confirmed! 🚗
-            <div style="margin-top:8px">Your driver will arrive in about <b>${arrivalTime}</b> minutes.</div>
-            <div style="margin-top:10px; color:#333">
-              <b>Driver:</b> ${escapeHtml(chosenDriver.name)} • <b>Rating:</b> ⭐ ${rating}/5<br>
-              <b>Car:</b> ${escapeHtml(chosenDriver.car)} • <b>Plate:</b> ${escapeHtml(chosenDriver.plate)}
-            </div>
-            <div style="margin-top:10px">
-              <img src="${chosenDriver.image}" alt="car" style="width:260px; border-radius:10px;">
-            </div>
-            <div style="margin-top:12px">
-              <img src="https://staticmap.openstreetmap.de/staticmap.php?center=${pickupEncoded}&zoom=14&size=400x300&markers=${pickupEncoded},red" alt="map" style="width:100%; max-width:400px; border-radius:10px;">
-            </div>
-          </div>
-        `;
-
-        saveRide(ride);
-
-        // auto-expand history after booking
-        historyContent.style.display = "block";
-        toggleBtn.textContent = "Hide";
-        historyContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+        confirmation.textContent =
+          `✅ Hi ${name}, your ${rideType} ride from ${pickup} to ${dropoff} is confirmed! ` +
+          `${driver} is arriving in ${arrivalTime} minutes driving a ${car} (${plate}).`;
       });
-
-      function capitalize(s) {
-        if (!s) return s;
-        return s.charAt(0).toUpperCase() + s.slice(1);
-      }
-      function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
-
-      loadHistory();
-    })();
     </script>
   </body>
 </html>
